@@ -14,7 +14,7 @@ dpms_mode = ("unsupported", "pi", "x_dpms")
 
 # utility functions with no dependency on ViewerDisplay properties
 def txt_to_bit(txt):
-    txt_map = {"title": 1, "caption": 2, "name": 4, "date": 8, "location": 16, "folder": 32}
+    txt_map = {"title": 1, "caption": 2, "name": 4, "date": 8, "location": 16, "folder": 32, "path": 64}
     if txt in txt_map:
         return txt_map[txt]
     return 0
@@ -23,7 +23,7 @@ def txt_to_bit(txt):
 def parse_show_text(txt):
     show_text = 0
     txt = txt.lower()
-    for txt_key in ("title", "caption", "name", "date", "location", "folder"):
+    for txt_key in ("title", "caption", "name", "date", "location", "folder", "path"):
         if txt_key in txt:
             show_text |= txt_to_bit(txt_key)
     return show_text
@@ -341,6 +341,10 @@ class ViewerDisplay:
         # __textblocks[0] otherwise it is half width and put into __textblocks[position]
         info_strings = []
         if pic is not None and (self.__show_text > 0 or paused):  # was SHOW_TEXT_TM > 0.0
+            if (self.__show_text & 64) == 64:  # folder path
+                info_strings.append(os.path.dirname(pic.fname).replace("/home/admin/Pictures/", "").replace("/", " / "))
+            if (self.__show_text & 32) == 32:  # folder
+                info_strings.append(os.path.basename(os.path.dirname(pic.fname)))
             if (self.__show_text & 1) == 1 and pic.title is not None:  # title
                 info_strings.append(pic.title)
             if (self.__show_text & 2) == 2 and pic.caption is not None:  # caption
@@ -361,8 +365,10 @@ class ViewerDisplay:
                     # remove any trailing commas or spaces from the location
                     location = location.strip(", ")
                 info_strings.append(location)  # TODO need to sanitize and check longer than 0 for real
-            if (self.__show_text & 32) == 32:  # folder
+            """if (self.__show_text & 32) == 32:  # folder
                 info_strings.append(os.path.basename(os.path.dirname(pic.fname)))
+            if (self.__show_text & 64) == 64:  # folder path
+                info_strings.append(os.path.dirname(pic.fname).replace(self.__pic_dir, ""))"""
             if paused:
                 info_strings.append("PAUSED")
         final_string = " • ".join(info_strings)
