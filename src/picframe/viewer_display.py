@@ -341,8 +341,9 @@ class ViewerDisplay:
         # __textblocks[0] otherwise it is half width and put into __textblocks[position]
         info_strings = []
         if pic is not None and (self.__show_text > 0 or paused):  # was SHOW_TEXT_TM > 0.0
+            picdir = os.path.dirname(pic.fname)
             if (self.__show_text & 64) == 64:  # folder path
-                info_strings.append(os.path.dirname(pic.fname).replace("/home/admin/Pictures/", "").replace("/", " / "))
+                info_strings.append(picdir.replace("/home/admin/Pictures/", "").replace("/", " / "))
             if (self.__show_text & 32) == 32:  # folder
                 info_strings.append(os.path.basename(os.path.dirname(pic.fname)))
             if (self.__show_text & 1) == 1 and pic.title is not None:  # title
@@ -351,7 +352,7 @@ class ViewerDisplay:
                 info_strings.append(pic.caption)
             if (self.__show_text & 4) == 4:  # name
                 info_strings.append(os.path.basename(pic.fname))
-            if (self.__show_text & 8) == 8 and pic.exif_datetime > 0:  # date
+            if (self.__show_text & 8) == 8 and pic.exif_datetime > 0 and 'Film' not in picdir:  # date
                 fdt = time.strftime(self.__show_text_fm, time.localtime(pic.exif_datetime))
                 info_strings.append(fdt)
             if (self.__show_text & 16) == 16 and pic.location is not None:  # location
